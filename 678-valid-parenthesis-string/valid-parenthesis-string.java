@@ -20,7 +20,6 @@ class Solution {
                 if(min < 0) min = 0;
             }
         }
-        if(min < 0) min = 0;
         return min==0;
     }
 }
