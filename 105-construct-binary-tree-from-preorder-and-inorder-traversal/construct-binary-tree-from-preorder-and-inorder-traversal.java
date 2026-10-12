@@ -19,7 +19,7 @@ class Solution {
         if(start > end) return null;
         int rootVal = preorder[preIdx++];
         TreeNode root = new TreeNode(rootVal);
-        int idx = 0;
+        int idx = start;
         while(inorder[idx] != rootVal){
             idx++;
         }
