@@ -21,10 +21,10 @@ class Solution {
         queue.offer(root);
         while(!queue.isEmpty()){
             int size = queue.size();
-            List<Integer> level = new ArrayList<>();
+            int max = Integer.MIN_VALUE;
             for(int i=0;i<size;i++){
                 TreeNode node = queue.poll();
-                level.add(node.val);
+                max = Math.max(max,node.val);
                 if(node.left != null){
                     queue.offer(node.left);
                 }
@@ -33,8 +33,7 @@ class Solution {
                 }
 
             }
-            Collections.sort(level);
-            ans.add(level.get(level.size()-1));
+            ans.add(max);
         }
 
         return ans;
