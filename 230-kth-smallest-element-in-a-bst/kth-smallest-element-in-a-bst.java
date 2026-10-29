@@ -13,15 +13,25 @@
  *     }
  * }
  */
-class Solution {
-    private int counter = 0;
+import java.util.Stack;
 
+class Solution {
     public int kthSmallest(TreeNode root, int k) {
-        if (root == null) return -1;
-        int left = kthSmallest(root.left, k);
-        if (left != -1) return left;
-        counter++;
-        if (counter == k) return root.val;
-        return kthSmallest(root.right, k);
+        Stack<TreeNode> stack = new Stack<>();
+        pushLeft(stack, root);
+
+        for (int i = 0; i < k - 1; ++i) {
+            TreeNode node = stack.pop();
+            pushLeft(stack, node.right);
+        }
+
+        return stack.pop().val;
+    }
+
+    private void pushLeft(Stack<TreeNode> stack, TreeNode root) {
+        while (root != null) {
+            stack.push(root);
+            root = root.left;
+        }
     }
 }
