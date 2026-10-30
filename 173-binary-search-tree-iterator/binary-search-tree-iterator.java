@@ -13,30 +13,57 @@
  *     }
  * }
  */
+
+//  class BSTIterator {
+
+//     private ArrayList<Integer> list = new ArrayList<>();
+//     private int idx = -1;
+
+//     private void inorder(TreeNode root) {
+//         if (root == null) return;
+
+//         inorder(root.left);
+//         list.add(root.val);
+//         inorder(root.right);
+//     }
+
+//     public BSTIterator(TreeNode root) {
+//         inorder(root);
+//     }
+
+//     public int next() {
+//         idx++;
+//         return list.get(idx);
+//     }
+
+//     public boolean hasNext() {
+//         return idx + 1 < list.size();
+//     }
+// } --> brute force code which takes o(n) space complexity extra
+
+
 class BSTIterator {
-
-    private ArrayList<Integer> list = new ArrayList<>();
-    private int idx = -1;
-
-    private void inorder(TreeNode root) {
-        if (root == null) return;
-
-        inorder(root.left);
-        list.add(root.val);
-        inorder(root.right);
-    }
-
+    private Stack<TreeNode> stack = new Stack<>();
     public BSTIterator(TreeNode root) {
-        inorder(root);
+        pushleft(root);
     }
-
+    private void pushleft(TreeNode root){
+        while(root != null){
+            stack.push(root);
+            root = root.left;
+        }
+    }
+    
     public int next() {
-        idx++;
-        return list.get(idx);
+        TreeNode node = stack.pop();
+        if(node.right != null){
+            pushleft(node.right);
+        }
+        return node.val;
     }
-
+    
     public boolean hasNext() {
-        return idx + 1 < list.size();
+        return !stack.isEmpty();
     }
 }
 
