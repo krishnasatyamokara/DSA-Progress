@@ -1,20 +1,11 @@
 class Solution {
 
-    private int dfs(int row, int col, boolean[][] visited,
-                    int[][] grid, boolean[] flag) {
-
-        visited[row][col] = true;
+    private void dfs(int row, int col, int[][] grid) {
 
         int m = grid.length;
         int n = grid[0].length;
 
-        int count = 1;
-
-        // Check whether the current cell is on the boundary
-        if (row == 0 || row == m - 1 ||
-            col == 0 || col == n - 1) {
-            flag[0] = true;
-        }
+        grid[row][col] = 0;
 
         int[] dRow = {-1, 1, 0, 0};
         int[] dCol = {0, 0, 1, -1};
@@ -26,14 +17,11 @@ class Solution {
 
             if (newRow >= 0 && newRow < m &&
                 newCol >= 0 && newCol < n &&
-                !visited[newRow][newCol] &&
                 grid[newRow][newCol] == 1) {
 
-                count += dfs(newRow, newCol, visited, grid, flag);
+                dfs(newRow, newCol, grid);
             }
         }
-
-        return count;
     }
 
     public int numEnclaves(int[][] grid) {
@@ -41,23 +29,34 @@ class Solution {
         int m = grid.length;
         int n = grid[0].length;
 
-        boolean[][] visited = new boolean[m][n];
+        // First and last rows
+        for (int j = 0; j < n; j++) {
 
+            if (grid[0][j] == 1)
+                dfs(0, j, grid);
+
+            if (grid[m - 1][j] == 1)
+                dfs(m - 1, j, grid);
+        }
+
+        // First and last columns
+        for (int i = 0; i < m; i++) {
+
+            if (grid[i][0] == 1)
+                dfs(i, 0, grid);
+
+            if (grid[i][n - 1] == 1)
+                dfs(i, n - 1, grid);
+        }
+
+        // Count remaining land cells
         int ans = 0;
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
 
-                if (grid[i][j] == 1 && !visited[i][j]) {
-
-                    boolean[] flag = {false};
-
-                    int count = dfs(i, j, visited, grid, flag);
-
-                    if (!flag[0]) {
-                        ans += count;
-                    }
-                }
+                if (grid[i][j] == 1)
+                    ans++;
             }
         }
 
