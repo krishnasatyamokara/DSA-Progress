@@ -1,61 +1,60 @@
-class Pair{
-    int row;
-    int col;
-    int tm;
-    Pair(int row,int col, int tm){
-        this.row = row;
-        this.col = col;
-        this.tm = tm;
-    }
-}
-
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 class Solution {
     public int orangesRotting(int[][] grid) {
         int m = grid.length;
         int n = grid[0].length;
-        int tm = 0;
         int cntFresh = 0;
-        Queue<Pair> q = new LinkedList<>();
-        int[][] visited = new int[m][n];
-        for(int i=0;i<m;i++){
-            for(int j=0;j<n;j++){
-                if(grid[i][j] == 2){
-                    q.add(new Pair(i,j,0));
-                    visited[i][j] = 2;
-                }else{
-                    visited[i][j] = 0;
-                }
-                if(grid[i][j] == 1){
+
+        // ArrayDeque is faster than LinkedList for queues
+        Queue<int[]> q = new ArrayDeque<>();
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] == 2) {
+                    q.offer(new int[]{i, j});
+                } else if (grid[i][j] == 1) {
                     cntFresh++;
                 }
             }
         }
 
-        int cnt = 0;
-        int[] dRow = {-1,1,0,0};
-        int[] dCol = {0,0,1,-1};
+        // Edge case: No fresh oranges to rot
+        if (cntFresh == 0) return 0;
 
-        while(!q.isEmpty()){
-            int r = q.peek().row;
-            int c = q.peek().col;
-            int t = q.peek().tm;
-            tm = Math.max(t,tm);
-            q.remove();
-            for(int i=0;i<4;i++){
-                int nRow = r+dRow[i];
-                int nCol = c+dCol[i];
-                if(nRow>=0 && nRow<m && nCol>=0 && nCol<n &&
-                visited[nRow][nCol]==0 && grid[nRow][nCol]==1){
-                    q.add(new Pair(nRow,nCol,t+1));
-                    visited[nRow][nCol] = 2;
-                    cnt++;
+        int minutes = 0;
+        int[] dRow = {-1, 1, 0, 0};
+        int[] dCol = {0, 0, 1, -1};
+
+        while (!q.isEmpty()) {
+            int size = q.size();
+            boolean rottedThisMinute = false;
+
+            for (int k = 0; k < size; k++) {
+                int[] curr = q.poll();
+                int r = curr[0];
+                int c = curr[1];
+
+                for (int i = 0; i < 4; i++) {
+                    int nRow = r + dRow[i];
+                    int nCol = c + dCol[i];
+
+                    // Check bounds and if the adjacent orange is fresh (1)
+                    if (nRow >= 0 && nRow < m && nCol >= 0 && nCol < n && grid[nRow][nCol] == 1) {
+                        grid[nRow][nCol] = 2; // Mark as rotten in-place
+                        q.offer(new int[]{nRow, nCol});
+                        cntFresh--;
+                        rottedThisMinute = true;
+                    }
                 }
             }
 
+            if (rottedThisMinute) {
+                minutes++;
+            }
         }
-        if(cnt != cntFresh) return -1;
-        return tm;
- 
+
+        return cntFresh == 0 ? minutes : -1;
     }
 }
