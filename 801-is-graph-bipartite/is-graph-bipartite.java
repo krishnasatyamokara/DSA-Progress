@@ -1,5 +1,6 @@
 class Solution {
 
+    // BFS
     private boolean check(int start, int V, int[][] adj, int[] color){
         Queue<Integer> q = new LinkedList<>();
         q.add(start);
