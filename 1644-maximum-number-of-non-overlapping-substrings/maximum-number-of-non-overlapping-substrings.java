@@ -1,55 +1,108 @@
 class Solution {
-    public List<String> maxNumOfSubstrings(String s) {
-        int n = s.length();
-        int[] first = new int[26];
-        int[] last = new int[26];
-        Arrays.fill(first, -1);
-
-        // 1. Find the first and last index of every character
-        for (int i = 0; i < n; i++) {
-            int c = s.charAt(i) - 'a';
-            if (first[c] == -1) {
-                first[c] = i;
-            }
-            last[c] = i;
+    public List<String> maxNumOfSubstrings(String S) {
+	    // some nasty pre-compute in order to build the graph in O(N) time
+        int[] mins = new int[26]; 
+        int[] maxs = new int[26]; 
+        Arrays.fill(mins, Integer.MAX_VALUE);
+        Arrays.fill(maxs, -1); 
+        boolean[] exists = new boolean[26]; 
+        int[][] prefixSum = new int[S.length() + 1][26]; 
+        for (int i = 0; i < S.length(); i ++) {
+            System.arraycopy(prefixSum[i], 0, prefixSum[i + 1], 0, 26); 
+            prefixSum[i + 1][S.charAt(i) - 'a'] += 1; 
+            mins[S.charAt(i) - 'a'] = Math.min(mins[S.charAt(i) - 'a'], i); 
+            maxs[S.charAt(i) - 'a'] = Math.max(maxs[S.charAt(i) - 'a'], i); 
+            exists[S.charAt(i) - 'a'] = true; 
         }
-
-        // 2. Find all valid candidate intervals [start, end]
-        List<int[]> intervals = new ArrayList<>();
-        for (int c = 0; c < 26; c++) {
-            if (first[c] == -1) continue;
-
-            int start = first[c];
-            int end = last[c];
-            boolean valid = true;
-
-            for (int i = start; i <= end; i++) {
-                int curr = s.charAt(i) - 'a';
-                if (first[curr] < start) {
-                    valid = false;
-                    break;
+        // build graph, using adjacency matrix
+        boolean[][] graph = new boolean[26][26];
+        for (int i = 0; i < 26; i ++) {
+            if (exists[i]) {
+                for (int j = 0; j < 26; j ++) {
+                    if (prefixSum[maxs[i] + 1][j] - prefixSum[mins[i]][j] > 0) {
+                        graph[i][j] = true; 
+                    }
                 }
-                end = Math.max(end, last[curr]);
-            }
-
-            if (valid) {
-                intervals.add(new int[]{start, end});
             }
         }
-
-        // 3. Sort by end index ascending and pick non-overlapping substrings
-        intervals.sort((a, b) -> Integer.compare(a[1], b[1]));
-
-        List<String> result = new ArrayList<>();
-        int prevEnd = -1;
-
-        for (int[] interval : intervals) {
-            if (interval[0] > prevEnd) {
-                result.add(s.substring(interval[0], interval[1] + 1));
-                prevEnd = interval[1];
+    
+        // kosaraju algorithm to find scc
+        Stack stack = new Stack(); 
+        boolean[] visited = new boolean[26]; 
+        for (int i = 0; i < 26; i ++) {
+            if (exists[i] && !visited[i]) {
+                dfs(i, graph, stack, visited);
             }
         }
-
-        return result;
+        int batch = 0; // 'id' of each SCC
+        int[] batches = new int[26]; 
+        int[] degree = new int[26];  // out-degree of each SCC
+        Arrays.fill(batches, -1); 
+        while (!stack.isEmpty()) {
+            int v = stack.pop(); 
+            if (batches[v] < 0) {
+                dfs(v, graph, batches, batch, degree);
+                batch ++; 
+            }
+        }
+        
+        List<String> res = new ArrayList<>(); 
+        for (int i = batch - 1; i >= 0; i--) {
+            if (degree[i] == 0) {
+                int min = Integer.MAX_VALUE, max = -1; 
+                for (int j = 0; j < 26; j ++) {
+                    if (batches[j] == i) {
+                        min = Math.min(mins[j], min); 
+                        max = Math.max(maxs[j], max); 
+                    }
+                }
+                res.add(S.substring(min, max + 1));
+            }
+        }
+        
+        return res; 
+    }
+    
+    private void dfs(int v, boolean[][] graph, Stack stack, boolean[] visited) {
+        if (!visited[v]) {
+            visited[v] = true; 
+            for (int i = 0; i < 26; i ++) {
+                if (graph[v][i] && !visited[i]) {
+                    dfs(i, graph, stack, visited);
+                }
+            }
+            stack.push(v);
+        }
+    }
+    
+    private void dfs(int v, boolean[][] graph, int[] batches, int batch, int[] degree) {
+        if (batches[v] < 0) {
+            batches[v] = batch; 
+            for (int i = 0; i < 26; i ++) {
+                if (graph[i][v]) {
+                    dfs(i, graph, batches, batch, degree); 
+                }  
+            }
+        } else {
+            if (batches[v] != batch) {
+                degree[batches[v]] += 1;
+            }
+        }
+    }
+    
+    private static final class Stack {
+        int[] values = new int[26]; 
+        int top = 0;
+        void push(int val) {
+            values[top ++] = val; 
+        }
+        int pop() {
+            top --; 
+            return values[top];
+        }
+        boolean isEmpty() {
+            return top == 0; 
+        }
+        
     }
 }
